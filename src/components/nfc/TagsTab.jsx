@@ -1,18 +1,18 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
   IconTag, IconPlus, IconNfc, IconTrash, IconPencil, IconWifi,
-  IconSearch, IconHouse, IconBook,
+  IconSearch, IconBook,
 } from '../../icons'
 import { Card, Field, TextInput, TextArea, PasswordInput, Select, Badge, EmptyState, SkeletonRows } from './shared'
 import WriteTagModal from './WriteTagModal'
 import { AUTH_MODES } from '../../utils/ndef'
 import { listTags, createTag, updateTag, deleteTag, markWritten, TAG_KINDS } from '../../services/tagStore'
 
-// Catálogo — a lista do que existe, onde está e o que ainda não foi gravado.
+// Catálogo — a lista do que existe e o que ainda não foi gravado.
 //
-// O ponto dessa aba não é gravar (isso o modal faz): é responder "quantas tags
-// dessa casa já foram pro campo" sem alguém ter que ir lá conferir. Por isso a
-// listagem mostra contagem de gravações e não só o conteúdo.
+// O ponto dessa aba não é gravar (isso o modal faz): é responder "essa tag já
+// foi pro campo?" sem alguém ter que ir lá conferir. Por isso a listagem
+// mostra contagem de gravações e não só o conteúdo.
 
 const KIND_ICON = { wifi: IconWifi, url: IconBook, text: IconTag }
 
@@ -23,7 +23,7 @@ const MODE_OPTIONS = [
   { id: 'url', label: 'Landing page (works on iPhone too)' },
 ]
 
-const blank = { name: '', kind: 'url', property: '', room: '', payload: {} }
+const blank = { name: '', kind: 'url', payload: {} }
 
 // Resumo de uma linha da lista: o suficiente pra reconhecer a tag sem abrir.
 function summarize(tag) {
@@ -107,7 +107,7 @@ export default function TagsTab({ reloadKey }) {
     const q = query.trim().toLowerCase()
     if (!q) return tags
     return tags.filter((t) =>
-      [t.name, t.property, t.room, summarize(t)].join(' ').toLowerCase().includes(q))
+      [t.name, summarize(t)].join(' ').toLowerCase().includes(q))
   }, [tags, query])
 
   const save = async () => {
@@ -156,7 +156,7 @@ export default function TagsTab({ reloadKey }) {
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search by name, property or content"
+            placeholder="Search by name or content"
             className="w-full border border-gray-200 rounded-lg pl-9 pr-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
           />
         </div>
@@ -186,20 +186,6 @@ export default function TagsTab({ reloadKey }) {
                   value={editing.kind}
                   onChange={(v) => setEditing({ ...editing, kind: v, payload: {} })}
                   options={KIND_OPTIONS}
-                />
-              </Field>
-              <Field label="Property">
-                <TextInput
-                  value={editing.property}
-                  onChange={(v) => setEditing({ ...editing, property: v })}
-                  placeholder="e.g. Solterra 4218"
-                />
-              </Field>
-              <Field label="Room / spot" hint="Where the tag is physically stuck.">
-                <TextInput
-                  value={editing.room}
-                  onChange={(v) => setEditing({ ...editing, room: v })}
-                  placeholder="e.g. Kitchen — fridge door"
                 />
               </Field>
             </div>
@@ -241,7 +227,7 @@ export default function TagsTab({ reloadKey }) {
           Icon={IconTag}
           title={tags.length ? 'No tag matches that search' : 'No tags yet'}
           hint={tags.length
-            ? 'Try the property name or part of the link.'
+            ? 'Try the tag name or part of the link.'
             : 'Start with the Wi-Fi tab — it is the test tag for this project, and the one that saves the most support calls.'}
           action={!tags.length && (
             <button
@@ -273,12 +259,6 @@ export default function TagsTab({ reloadKey }) {
                     </Badge>
                   </div>
                   <p className="text-xs text-gray-400 truncate mt-0.5">{summarize(tag)}</p>
-                  {(tag.property || tag.room) && (
-                    <p className="text-xs text-gray-400 truncate mt-0.5 flex items-center gap-1">
-                      <IconHouse width={12} height={12} className="flex-shrink-0" />
-                      {[tag.property, tag.room].filter(Boolean).join(' · ')}
-                    </p>
-                  )}
                 </div>
 
                 <div className="flex items-center gap-1 flex-shrink-0">

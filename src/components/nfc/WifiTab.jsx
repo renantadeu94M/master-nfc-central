@@ -18,7 +18,6 @@ const MODES = [
 ]
 
 const empty = {
-  property: '',
   ssid: '',
   password: '',
   auth: 'wpa2',
@@ -43,7 +42,6 @@ export default function WifiTab({ onSaved }) {
     id: 'draft',
     name: form.ssid ? 'Wi-Fi — ' + form.ssid : 'Wi-Fi',
     kind: 'wifi',
-    property: form.property,
     payload: {
       ssid: form.ssid,
       password: form.password,
@@ -73,10 +71,8 @@ export default function WifiTab({ onSaved }) {
     setError('')
     try {
       await createTag({
-        name: 'Wi-Fi — ' + (form.ssid || form.property || 'network'),
+        name: 'Wi-Fi — ' + (form.ssid || 'network'),
         kind: 'wifi',
-        property: form.property,
-        room: '',
         payload: draft.payload,
       })
       setNotice('Saved to the catalog. You can write it to more tags from the Tags tab.')
@@ -103,13 +99,14 @@ export default function WifiTab({ onSaved }) {
         Icon={IconWifi}
       >
         <div className="grid md:grid-cols-2 gap-4">
-          <Field label="Property" hint="Only a label for the catalog — it is not written to the tag.">
-            <TextInput value={form.property} onChange={(v) => set({ property: v })} placeholder="e.g. Solterra 4218" />
-          </Field>
-
-          <Field label="Network name (SSID)" hint="Case sensitive. Up to 32 bytes.">
-            <TextInput value={form.ssid} onChange={(v) => set({ ssid: v })} placeholder="e.g. MasterVH-Guest" />
-          </Field>
+          {/* Sozinho na primeira linha — é o campo mais importante do
+              formulário, e sem "Property" ao lado não faz sentido dividir
+              a largura com mais nada aqui. */}
+          <div className="md:col-span-2">
+            <Field label="Network name (SSID)" hint="Case sensitive. Up to 32 bytes.">
+              <TextInput value={form.ssid} onChange={(v) => set({ ssid: v })} placeholder="e.g. MasterVH-Guest" />
+            </Field>
+          </div>
 
           <Field label="Security" hint={authNote}>
             <Select value={form.auth} onChange={(v) => set({ auth: v })} options={AUTH_MODES} />

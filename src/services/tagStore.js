@@ -62,8 +62,6 @@ export async function createTag(input) {
     id: newId(),
     name: input.name.trim(),
     kind: input.kind,
-    property: input.property?.trim() || '',
-    room: input.room?.trim() || '',
     payload: input.payload ?? {},
     // Contadores de gravação: é o que responde "essa tag já foi pro campo?"
     // sem precisar ir na casa conferir.
