@@ -11,7 +11,22 @@ painel não precisa aprender nada novo aqui.
 
 ---
 
-## Rodando
+## Link fixo (produção)
+
+**https://renantadeu94m.github.io/master-nfc-central/**
+
+Publicado via GitHub Pages, com HTTPS de verdade — abre direto no Chrome do
+Android e o Web NFC funciona sem nenhum passo extra (nada de port forwarding
+por cabo). Todo push em `master` republica sozinho (ver
+`.github/workflows/deploy.yml`); dá pra acompanhar em
+[Actions](https://github.com/renantadeu94M/master-nfc-central/actions).
+
+O catálogo de tags fica em `localStorage` **do navegador que está aberto** —
+ver a seção sobre isso mais abaixo.
+
+---
+
+## Rodando localmente
 
 ```bash
 npm install
@@ -47,11 +62,20 @@ contornar:
    navegador nenhum — nem no Chrome do iOS, que por baixo roda o motor do
    Safari. iPhone **lê** tag gravada, mas não grava.
 2. **Exige origem segura** (HTTPS ou `localhost`). Abrir `http://192.168.x.x:5174`
-   no celular **não funciona** — o navegador trata como inseguro e a API some.
+   no celular **não funciona** — o navegador trata como inseguro e a API some,
+   mesmo estando no Chrome certo. Se aparecer "not secure" no topo do Chrome,
+   é sempre por isso.
 
-O jeito mais barato de contornar o item 2, sem certificado nem túnel:
+**Pra testar de verdade, use o [link fixo do GitHub Pages](#link-fixo-produção)**
+— já resolve o item 2 sem cabo, túnel nem configuração nenhuma. As seções
+abaixo (dev server local) só importam se você estiver mexendo em código e
+precisar ver uma mudança antes de publicar.
 
-### Port forwarding do Chrome (USB)
+### Rodando o dev server local no celular (só durante desenvolvimento)
+
+O dev server em `http://192.168.x.x:5174` serve pra ver a tela, **não** pra
+gravar (item 2 acima). Pra gravar a partir do dev local, precisa que o
+celular enxergue o servidor como `localhost`:
 
 1. No celular Android: **Opções do desenvolvedor → Depuração USB** ligada.
 2. Liga o cabo USB no PC.
@@ -62,16 +86,22 @@ O jeito mais barato de contornar o item 2, sem certificado nem túnel:
 5. No Chrome do **celular**, abre `http://localhost:5174`.
 
 O celular passa a ver o dev server do PC como se fosse local — e `localhost`
-conta como origem segura, então o Web NFC liga.
+conta como origem segura, então o Web NFC liga. **Cai fácil**: qualquer soneca
+de tela, troca de cabo ou o PC suspender derruba o túnel — quando isso
+acontecer, é só repetir o passo 4 (o forwarding costuma ficar salvo, só
+precisa reabilitar) ou voltar pro link fixo.
 
 > Alternativa: qualquer túnel HTTPS (Cloudflare Tunnel, ngrok). Funciona igual,
-> só depende de internet e expõe a tela pra fora — pra bancada, o cabo é melhor.
+> só depende de internet e expõe a tela local pra fora.
 
 ### Na primeira gravação
 
-O Chrome pede permissão de NFC pro site. Se recusar sem querer, o botão passa a
-dar "Permission denied" pra sempre: limpa nas permissões do site no Chrome.
-O NFC do aparelho também precisa estar ligado nas configurações do Android.
+O Chrome pede permissão de NFC pro site (independente de ser o link fixo ou o
+local). Se recusar sem querer, o botão passa a dar "Permission denied" pra
+sempre: limpa nas permissões do site no Chrome (ícone de cadeado/informação
+ao lado do endereço → Permissões). O NFC do aparelho também precisa estar
+ligado nas configurações do Android (Conexões → NFC) — é um toggle separado
+da permissão do site.
 
 ---
 
@@ -121,12 +151,22 @@ docs/
 
 ### Decisões que valem saber
 
+- **O catálogo (`localStorage`) é por navegador, não compartilhado.** As tags
+  que você cadastra no celular não aparecem no PC, e vice-versa — cada
+  aparelho tem seu próprio catálogo isolado. Pra bancada de teste (uma pessoa,
+  um celular, decidindo o conteúdo e gravando na hora) isso não atrapalha; pra
+  equipe, é a primeira coisa que precisa de backend de verdade (ver item
+  abaixo).
 - **`tagStore.js` é assíncrono de propósito.** Hoje grava em `localStorage`, mas
   a forma das funções é a de uma API. Trocar por Postgres + Express, como no
   Master Lock Automation, é mexer só nesse arquivo — nenhuma tela muda.
-- **Sem login.** É ferramenta de bancada por enquanto. Antes de ir pro ar tem
-  que herdar o `AuthContext` do Master Lock, senão qualquer um com o link grava
-  tag com o nome da empresa.
+- **Sem login — e agora está na internet.** Era só ferramenta de bancada
+  quando rodava em `localhost`; publicado no GitHub Pages, o link funciona pra
+  qualquer pessoa que o receber, sem senha nenhuma. Não é problema enquanto
+  for uso interno da equipe (não tem dado sensível persistido — senha de
+  Wi-Fi fica só no navegador de quem está testando, nunca sai daquele
+  aparelho), mas antes de divulgar o link mais amplamente vale herdar o
+  `AuthContext` do Master Lock.
 - **O scan é amarrado a um `AbortController`.** Sem isso o navegador continua
   esperando uma tag depois que o modal fecha, e a *próxima* tag encostada seria
   sobrescrita sem ninguém ter pedido.

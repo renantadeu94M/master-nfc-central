@@ -7,10 +7,11 @@ import { APP_VERSION } from '../version'
 // sidebar de 64 (16 quando recolhida), item ativo marcado por borda amarela à
 // esquerda, topbar de 64 com o título em Optima e o selo BETA.
 //
-// O que NÃO veio de lá ainda: login, permissões por papel e i18n. Este projeto
-// roda sem autenticação porque ainda é ferramenta interna de bancada — antes
-// de ir pro ar tem que herdar o AuthContext do outro projeto, senão qualquer
-// um com o link grava tag com o nome da empresa.
+// O que NÃO veio de lá ainda: login, permissões por papel e i18n. O projeto já
+// está publicado (GitHub Pages, ver README) sem autenticação — qualquer um
+// com o link acessa e grava tag em nome da empresa. Aceitável enquanto o link
+// só circula dentro da equipe; antes de divulgar mais largamente, herdar o
+// AuthContext do Master Lock Automation.
 
 const TOP_MENU = [
   { id: 'nfc', label: 'NFC Central', Icon: IconNfc },
