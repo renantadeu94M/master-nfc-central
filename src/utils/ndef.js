@@ -11,22 +11,33 @@
 
 // Web NFC existe só no Chrome/Edge do Android (a partir do 89) e exige origem
 // segura. Em iPhone NÃO existe em navegador nenhum — nem no Chrome do iOS, que
-// por baixo é o motor do Safari. Por isso a checagem é por API presente, não
-// por user agent: quando/se o Safari implementar, a central passa a funcionar
-// sem a gente tocar em nada.
+// por baixo é o motor do Safari.
+//
+// A ORDEM das checagens importa aqui, e não é só estilo: em origem insegura o
+// Chrome remove `NDEFReader` de `window` por completo — a API não fica "lá,
+// mas bloqueada", ela simplesmente não existe. Checar `hasApi` antes de
+// `secure` (como era antes) faz cair direto no branch genérico de "navegador
+// sem suporte" mesmo estando no Chrome certo, porque a condição
+// `hasApi && !secure` nunca é alcançada. Resultado real visto em campo: Chrome
+// no Android, acessando por http://192.168.x.x:5174 (LAN, sem HTTPS) — a
+// barra do Chrome já avisa "não seguro", e a mensagem daqui dizia "this
+// browser has no Web NFC", que é verdade só por acidente e não ajuda ninguém
+// a resolver.
 export function nfcSupport() {
-  const hasApi = typeof window !== 'undefined' && 'NDEFReader' in window
   const secure = typeof window !== 'undefined' && window.isSecureContext
   const ios = typeof navigator !== 'undefined' && /iPad|iPhone|iPod/.test(navigator.userAgent)
 
-  if (hasApi && secure) return { ok: true, reason: null }
-  if (hasApi && !secure) {
+  if (!secure) {
     return {
       ok: false,
       reason: 'insecure',
-      message: 'NFC requires a secure origin (HTTPS or localhost). Open this page over HTTPS to write tags.',
+      message: 'This page is not on a secure connection, so the phone hides NFC from every browser — even Chrome on Android. Open it via https:// or via localhost (see the README for the USB port-forwarding steps); a plain http://192.168.x.x link never works for writing.',
     }
   }
+
+  const hasApi = typeof window !== 'undefined' && 'NDEFReader' in window
+  if (hasApi) return { ok: true, reason: null }
+
   if (ios) {
     return {
       ok: false,
@@ -37,7 +48,7 @@ export function nfcSupport() {
   return {
     ok: false,
     reason: 'unsupported',
-    message: 'This browser has no Web NFC. Use Chrome on Android to read and write tags.',
+    message: 'This browser has no Web NFC. Use Chrome or Edge on Android to read and write tags.',
   }
 }
 
